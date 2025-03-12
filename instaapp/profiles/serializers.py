@@ -67,7 +67,4 @@ class ProfileSerializer(serializers.ModelSerializer):
         followers_data = validated_data.pop("followers", None)
         profile = Profile.objects.create(user=user, **validated_data)
 
-        if followers_data is not None:
-            profile.followers.set(followers_data)
-
-        return profile
+       
