@@ -28,6 +28,18 @@ class ProfileListAPIView(APIView):
         
         serializer = ProfileSerializer(result_page, many=True)  
         return Response(serializer.data, status=status.HTTP_200_OK) 
+    
+
+class ProfileSearchAPIView(APIView):
+    
+    def get(self, request, *args, **kwargs):
+        query = request.query_params.get('q', None)
+        if query:
+            profiles = Profile.objects.filter(user__username__icontains=query)
+        else:
+            profiles = Profile.objects.all()
+        serializer = ProfileSerializer(profiles, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class RegisterAPIView(APIView):
