@@ -119,7 +119,7 @@ class PostListCreateAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class LikeAPIView(APIView):
+class LikePostAPIView(APIView):
     """API View to manage likes on posts. Allows to get, create and delete likes."""
     permission_classes = [IsAuthenticated]  
     
