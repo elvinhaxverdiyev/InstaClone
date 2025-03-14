@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.generics import get_object_or_404
 
 from posts.models import Post
@@ -12,17 +13,26 @@ from likes.models import Like
 from likes.serializers import LikeSerializer
 
 
+class Pagination(PageNumberPagination):
+    """Pagination class that splits the movie list into pages."""
+    page_size = 2
 
 
 class ProfileListAPIView(APIView):
+    pagination_class = Pagination 
+    
     def get(self, request, *args, **kwargs):
         profiles = Profile.objects.all()  
-        serializer = ProfileSerializer(profiles, many=True)  
+        paginator = self.pagination_class() 
+        result_page = paginator.paginate_queryset(profiles, request)
+        
+        serializer = ProfileSerializer(result_page, many=True)  
         return Response(serializer.data, status=status.HTTP_200_OK) 
 
 
 class RegisterAPIView(APIView):
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
+        
         profile_data = request.data
         serializer = ProfileSerializer(data=profile_data)
         if serializer.is_valid():
@@ -60,9 +70,14 @@ class PostDetailAPIView(APIView):
 
 
 class PostListCreateAPIView(APIView):
+    pagination_class = Pagination 
+    
     def get(self, request):
         posts = Post.objects.all()
-        serializer = PostSerializer(posts, many=True)
+        paginator = self.pagination_class() 
+        result_page = paginator.paginate_queryset(posts, request)
+        
+        serializer = PostSerializer(result_page, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request, *args, **kwargs):
