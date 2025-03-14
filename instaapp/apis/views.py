@@ -19,9 +19,12 @@ class Pagination(PageNumberPagination):
 
 
 class ProfileListAPIView(APIView):
+    """API View to list all profiles with pagination support."""
+    
     pagination_class = Pagination 
     
     def get(self, request, *args, **kwargs):
+        """Handles GET request to list all profiles with pagination."""
         profiles = Profile.objects.all()  
         paginator = self.pagination_class() 
         result_page = paginator.paginate_queryset(profiles, request)
@@ -31,8 +34,10 @@ class ProfileListAPIView(APIView):
     
 
 class ProfileSearchAPIView(APIView):
+    """API View to search profiles by username."""
     
     def get(self, request, *args, **kwargs):
+        """Handles GET request to search profiles by username."""
         query = request.query_params.get('q', None)
         if query:
             profiles = Profile.objects.filter(user__username__icontains=query)
@@ -43,8 +48,10 @@ class ProfileSearchAPIView(APIView):
 
 
 class RegisterAPIView(APIView):
+    """API View to register a new profile."""
+     
     def post(self, request, *args, **kwargs):
-        
+        """Handles POST request to create a new profile."""
         profile_data = request.data
         serializer = ProfileSerializer(data=profile_data)
         if serializer.is_valid():
@@ -55,13 +62,16 @@ class RegisterAPIView(APIView):
 
 
 class PostDetailAPIView(APIView):
+    """API View to get, update, and delete a specific post."""
+    
     def get(self, request, id):
-        
+        """Handles GET request to fetch details of a specific post."""
         post = get_object_or_404(Post, pk=id)
         serializer = PostSerializer(post)
         return Response(serializer.data)
 
     def patch(self, request, id):
+        """Handles PATCH request to update a specific post partially."""
         post = get_object_or_404(Post, pk=id)
         serializer = PostCreateSerializer(post, data=request.data, partial=True)
 
@@ -74,6 +84,7 @@ class PostDetailAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, id):
+        """Handles DELETE request to delete a specific post."""
         post = get_object_or_404(Post, pk=id)
         post.delete()
         return Response({
@@ -82,9 +93,11 @@ class PostDetailAPIView(APIView):
 
 
 class PostListCreateAPIView(APIView):
+    """API View to list all posts and create new posts."""
     pagination_class = Pagination 
     
     def get(self, request):
+        """Handles GET request to list all posts with pagination."""
         posts = Post.objects.all()
         paginator = self.pagination_class() 
         result_page = paginator.paginate_queryset(posts, request)
@@ -93,6 +106,7 @@ class PostListCreateAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request, *args, **kwargs):
+        """Handles POST request to create a new post."""
         serializer = PostCreateSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -106,9 +120,11 @@ class PostListCreateAPIView(APIView):
 
 
 class LikeAPIView(APIView):
+    """API View to manage likes on posts. Allows to get, create and delete likes."""
     permission_classes = [IsAuthenticated]  
     
     def get(self, request, post_id):
+        """Handles GET request to fetch all likes for a specific post."""
         post = get_object_or_404(Post, id=post_id)
         likes = Like.objects.filter(post=post)
         likes_count = likes.count() 
@@ -120,6 +136,7 @@ class LikeAPIView(APIView):
         return Response(response_data, status=status.HTTP_200_OK)
 
     def post(self, request, post_id):
+        """Handles POST request to create a like for a specific post."""
         post = get_object_or_404(Post, id=post_id)
         if Like.objects.filter(post=post, profile=request.user.profile).exists():
             return Response({"message": "You have already liked this post."}, status=status.HTTP_400_BAD_REQUEST)
@@ -133,6 +150,7 @@ class LikeAPIView(APIView):
         return Response(response_data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, post_id):
+        """Handles DELETE request to remove a like from a specific post."""
         post = get_object_or_404(Post, id=post_id)
         like = Like.objects.filter(post=post, profile=request.user.profile).first()
 
