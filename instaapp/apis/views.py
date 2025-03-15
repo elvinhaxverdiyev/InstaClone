@@ -166,7 +166,9 @@ class LikePostAPIView(APIView):
 
 
 class CommentCreateAPIView(APIView):
-    
+    """
+    API view for creating and retrieving comments, accessible only to authenticated users.
+    """
     permission_classes = [IsAuthenticated] 
     
     def get(self, request):
