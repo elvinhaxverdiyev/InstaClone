@@ -11,6 +11,8 @@ from profiles.models import Profile
 from profiles.serializers import ProfileSerializer
 from likes.models import Like
 from likes.serializers import LikeSerializer
+from comments.models import Comment
+from comments.serializers import CommentSerializer
 
 
 class Pagination(PageNumberPagination):
@@ -163,4 +165,22 @@ class LikePostAPIView(APIView):
         return Response({"message": "You have not liked this post."}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
+class CommentCreateAPIView(APIView):
+    
+    permission_classes = [IsAuthenticated] 
+    
+    def get(self, request):
+        
+        comments = Comment.objects.all()
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        """ Create a new comment. """
+        data = request.data
+        data["user"] = request.user.profile.id  
+        serializer = CommentSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

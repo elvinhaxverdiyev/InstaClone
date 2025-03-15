@@ -8,5 +8,5 @@ urlpatterns = [
     path('posts/', PostListCreateAPIView.as_view(), name="posts-create"),
     path('post/<int:id>/', PostDetailAPIView.as_view(), name="post-detail"),
     path('like/<int:post_id>/', LikePostAPIView.as_view(), name="like-post"),
-
+    path('comments/', CommentCreateAPIView.as_view(), name="comment-create"), 
 ]
