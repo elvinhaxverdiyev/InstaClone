@@ -14,13 +14,18 @@ class PostSerializer(serializers.ModelSerializer):
     def get_likes_count(self, obj):
         return obj.get_likes_count()
 
+
 class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = [
-                  "profile",
-                  "title",
-                  "content",
-                  "image",
-                  "video"
-                  ]
+            "title",
+            "content",
+            "image",
+            "video"
+        ]
+        
+    def create(self, validated_data):
+        user = self.context["request"].user
+        post = Post.objects.create(profile=user.profile, **validated_data)
+        return post

@@ -2,65 +2,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.generics import get_object_or_404
 
+from .paginations import Pagination
 from posts.models import Post
 from posts.serializers import PostCreateSerializer, PostSerializer
-from profiles.models import Profile
-from profiles.serializers import ProfileSerializer
 from likes.models import Like
 from likes.serializers import LikeSerializer
 from comments.models import Comment
 from comments.serializers import CommentSerializer
-
-
-class Pagination(PageNumberPagination):
-    """Pagination class that splits the movie list into pages."""
-    page_size = 2
-
-
-class ProfileListAPIView(APIView):
-    """API View to list all profiles with pagination support."""
-    
-    pagination_class = Pagination 
-    
-    def get(self, request, *args, **kwargs):
-        """Handles GET request to list all profiles with pagination."""
-        profiles = Profile.objects.all()  
-        paginator = self.pagination_class() 
-        result_page = paginator.paginate_queryset(profiles, request)
-        
-        serializer = ProfileSerializer(result_page, many=True)  
-        return Response(serializer.data, status=status.HTTP_200_OK) 
-    
-
-class ProfileSearchAPIView(APIView):
-    """API View to search profiles by username."""
-    
-    def get(self, request, *args, **kwargs):
-        """Handles GET request to search profiles by username."""
-        query = request.query_params.get('q', None)
-        if query:
-            profiles = Profile.objects.filter(user__username__icontains=query)
-        else:
-            profiles = Profile.objects.all()
-        serializer = ProfileSerializer(profiles, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class RegisterAPIView(APIView):
-    """API View to register a new profile."""
-     
-    def post(self, request, *args, **kwargs):
-        """Handles POST request to create a new profile."""
-        profile_data = request.data
-        serializer = ProfileSerializer(data=profile_data)
-        if serializer.is_valid():
-            profile = serializer.save()
-            return Response(ProfileSerializer(profile).data, status=status.HTTP_201_CREATED)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PostDetailAPIView(APIView):
@@ -96,23 +46,24 @@ class PostDetailAPIView(APIView):
 
 class PostListCreateAPIView(APIView):
     """API View to list all posts and create new posts."""
+    permission_classes = [IsAuthenticated]
     pagination_class = Pagination 
-    
+
     def get(self, request):
         """Handles GET request to list all posts with pagination."""
         posts = Post.objects.all()
         paginator = self.pagination_class() 
-        result_page = paginator.paginate_queryset(posts, request)
+        result_page = paginator.paginate_queryset(posts, request)  
         
         serializer = PostSerializer(result_page, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return paginator.get_paginated_response(serializer.data) 
     
     def post(self, request, *args, **kwargs):
         """Handles POST request to create a new post."""
-        serializer = PostCreateSerializer(data=request.data)
+        serializer = PostCreateSerializer(data=request.data, context={"request": request})
 
         if serializer.is_valid():
-            post = serializer.save()
+            post = serializer.save() 
             return Response({
                 "message": "Post successfully created!",
                 "post": PostSerializer(post).data
