@@ -1,12 +1,13 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from posts.models import Story
 from posts.serializers import StoryCreateSerializer, StorySerializer
 
 class StoryManagmentAPIView(APIView):
     """API view for retrieving and creating stories."""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         """Retrieve all stories ordered by creation date (newest first)."""
