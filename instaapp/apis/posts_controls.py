@@ -10,7 +10,7 @@ from posts.serializers import PostCreateSerializer, PostSerializer
 from likes.models import Like
 from likes.serializers import LikeSerializer
 from comments.models import Comment
-from comments.serializers import CommentSerializer
+from comments.serializers import CommentSerializer, CommentCreateSerializer
 
 
 class PostDetailAPIView(APIView):
@@ -129,7 +129,7 @@ class CommentListAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 
-class CommentCreateAPIView(APIView):
+class CommentManagmentAPIView(APIView):
     """
     API view for creating and retrieving comments for a specific post.
     """
@@ -143,12 +143,30 @@ class CommentCreateAPIView(APIView):
 
     def post(self, request, post_id):
         """ Create a new comment for a specific post """
-        data = request.data
-        data["user"] = request.user.profile.id 
-        data["post"] = post_id  
+        if not request.user.is_authenticated:
+            return Response({"error": "User must be authenticated to create a comment"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        serializer = CommentSerializer(data=data)
+        try:
+            post = Post.objects.get(id=post_id)
+        except Post.DoesNotExist:
+            return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CommentCreateSerializer(data=request.data, context={"request": request, "post_id": post_id})
+        
         if serializer.is_valid():
-            serializer.save()
+            serializer.save() 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, comment_id):
+        """ Delete a specific comment if the user is the author """
+        try:
+            comment = Comment.objects.get(id=comment_id)
+        except Comment.DoesNotExist:
+            return Response({"error": "Comment not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if comment.user == request.user.profile:
+            comment.delete()
+            return Response({"message": "Comment deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({"error": "You are not authorized to delete this comment"}, status=status.HTTP_403_FORBIDDEN)

@@ -11,7 +11,8 @@ urlpatterns = [
     path('posts/', PostListCreateAPIView.as_view(), name="posts-create"),
     path('post/<int:id>/', PostDetailAPIView.as_view(), name="post-detail"),
     path('like/<int:post_id>/', LikePostAPIView.as_view(), name="like-post"),
-    path('comments/<int:post_id>/', CommentCreateAPIView.as_view(), name="post-comments"),
+    path('comments/<int:post_id>/', CommentManagmentAPIView.as_view(), name="post-comments"),
+    path('comments/delete/<int:comment_id>/', CommentManagmentAPIView.as_view(), name="comment-delete"),
     path('comments/', CommentListAPIView.as_view(), name="comments-list")
  
 ]
