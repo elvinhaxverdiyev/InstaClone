@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Post
+from .models import Post, Story
 from profiles.models import Profile
 
 
@@ -29,3 +29,22 @@ class PostCreateSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         post = Post.objects.create(profile=user.profile, **validated_data)
         return post
+    
+
+class StorySerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=Profile.objects.all())
+
+    class Meta:
+        model = Story
+        fields = "__all__"
+
+class StoryCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Story
+        fields = ["caption", "image", "video"] 
+
+    def create(self, validated_data):
+        user = self.context["request"].user.profile
+        story = Story.objects.create(user=user, **validated_data)
+        story.delete_after_24_hours()
+        return story

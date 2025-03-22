@@ -1,4 +1,7 @@
 from django.db import models
+from django.utils.timezone import now
+from datetime import timedelta
+
 from profiles.models import Profile
 from likes.models import Like
 
@@ -20,3 +23,25 @@ class Post(models.Model):
 
     def has_image(self):
         return bool(self.image)
+    
+    
+    
+class Story(models.Model):
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="stories")
+    caption = models.CharField(max_length=2200, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    image = models.ImageField(upload_to="media/", null=True, blank=True)
+    video = models.FileField(upload_to="media/", null=True, blank=True)
+    like_count = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.user.user.username}: {self.caption[:20]}"  
+
+    def delete_after_24_hours(self):
+        expiration_time = self.created_at + timedelta(hours=24)
+        if now() > expiration_time:
+            self.delete()
+            
+    @classmethod
+    def visible_stories(cls):
+        return cls.objects.filter(created_at__gte=now() - timedelta(hours=24))

@@ -1,6 +1,7 @@
 from django.urls import path
 from .posts_controls import *
 from .profile_controls import *
+from .stories_control import *
 
 urlpatterns = [
     path(
@@ -71,6 +72,12 @@ urlpatterns = [
     path(
         'comments/', CommentListAPIView.as_view(),
         name="comments-list"
-        )
+        ),
+    
+    path(
+        'stories/', 
+         StoryManagmentAPIView.as_view(),
+         name="story-api"
+         ),
  
 ]
