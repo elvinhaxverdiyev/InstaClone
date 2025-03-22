@@ -15,6 +15,7 @@ from comments.serializers import CommentSerializer, CommentCreateSerializer
 
 class PostDetailAPIView(APIView):
     """API View to get, update, and delete a specific post."""
+    permission_classes = [IsAuthenticated]
     
     def get(self, request, id):
         """Handles GET request to fetch details of a specific post."""
@@ -170,3 +171,34 @@ class CommentManagmentAPIView(APIView):
             return Response({"message": "Comment deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         else:
             return Response({"error": "You are not authorized to delete this comment"}, status=status.HTTP_403_FORBIDDEN)
+        
+
+class LikeCommentAPIView(APIView):
+    """API view for liking/unliking comments with authentication required."""
+    
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, comment_id):
+        """Creates a like for a comment if not already liked."""
+        comment = get_object_or_404(Comment, id=comment_id)
+        if Like.objects.filter(profile=request.user.profile, comment=comment).exists():
+            return Response({"message": "You have already liked this comment"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        Like.objects.create(profile=request.user.profile, comment=comment)
+        serializer = CommentSerializer(comment)
+
+        return Response({"message": "Like added","comment": serializer.data}, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, comment_id):
+        """Removes a like from a comment if it exists."""
+        comment = get_object_or_404(Comment, id=comment_id)
+
+        like = Like.objects.filter(profile=request.user.profile, comment=comment).first()
+
+        if not like:
+            return Response({"message": "You have not liked this comment"}, status=status.HTTP_400_BAD_REQUEST)
+
+        like.delete()
+        return Response({
+            "message": "Like removed"
+        }, status=status.HTTP_200_OK)

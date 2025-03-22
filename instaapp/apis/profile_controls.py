@@ -12,7 +12,7 @@ from profiles.serializers import ProfileSerializer
 
 class ProfileListAPIView(APIView):
     """API View to list all profiles with pagination support."""
-    
+    permission_classes = [IsAuthenticated]
     pagination_class = Pagination 
     
     def get(self, request, *args, **kwargs):
@@ -27,6 +27,7 @@ class ProfileListAPIView(APIView):
 
 class ProfileSearchAPIView(APIView):
     """API View to search profiles by username."""
+    permission_classes = [IsAuthenticated]
     
     def get(self, request, *args, **kwargs):
         """Handles GET request to search profiles by username."""
