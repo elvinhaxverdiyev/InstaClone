@@ -41,7 +41,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         return obj.followers.count()
 
     def get_following_count(self, obj):
-        return obj.user.following.count()
+        return obj.user.followings.count()
 
     def validate(self, attrs):
         username = attrs.get("username")

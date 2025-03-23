@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from posts.models import Story
 from posts.serializers import StoryCreateSerializer, StorySerializer
 
+
 class StoryManagmentAPIView(APIView):
     """API view for retrieving and creating stories."""
     permission_classes = [IsAuthenticated]
