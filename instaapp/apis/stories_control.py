@@ -39,3 +39,12 @@ class StoryManagmentAPIView(APIView):
                 "story": serializer.data
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, story_id):
+        """Delete a specific story."""
+        story = get_object_or_404(Story, id=story_id)
+        story.delete()
+        return Response(
+            {"message": "The story deleted successfuly"},
+            status=status.HTTP_204_NO_CONTENT
+        )

@@ -3,9 +3,7 @@ from rest_framework.permissions import BasePermission
 class CanManageObjectPermission(BasePermission):
     
     def has_permission(self, request, view):
-        if request.method == "GET":
-            return request.user and request.user.is_authenticated
-        if request.method in ["DELETE", "PUT", "PATCH"]:
+        if request.method in ["GET", "DELETE", "PUT", "PATCH", "POST"]:
             return request.user and request.user.is_authenticated
         return True
 
