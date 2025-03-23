@@ -141,11 +141,9 @@ class UnfollowAPIView(APIView):
         return Response({"detail": "You have unfollowed this user."}, status=status.HTTP_200_OK)
     
     
-class ProfileFollowListAPIView(APIView):
+class ProfileFollowersListAPIView(APIView):
+    """Returns a list of profiles following the specified profile ID."""
     permission_classes = [IsAuthenticated]
-    """
-    API endpoint to retrieve lists of followers and following profiles using the Profile model by ID
-    """
 
     def get(self, request, profile_id, format=None):
         try:
@@ -153,22 +151,30 @@ class ProfileFollowListAPIView(APIView):
             follower_users = profile.followers.all()
             follower_profiles = Profile.objects.filter(user__in=follower_users)
             follower_serializer = ProfileSerializer(follower_profiles, many=True)
-            following_users = profile.user.followings.values_list("user", flat=True) 
-            following_profiles = Profile.objects.filter(user__in=following_users)
-            following_serializer = ProfileSerializer(following_profiles, many=True)
-
-            data = {
-                "followers": follower_serializer.data,
-                "following": following_serializer.data
-            }
-            
-            return Response(data, status=status.HTTP_200_OK)
+            return Response({"Followers": follower_serializer.data}, status=status.HTTP_200_OK)
         
         except Exception as e:
             return Response(
                 {"error": f"Profile not found or an error occurred: {str(e)}"},
                 status=status.HTTP_404_NOT_FOUND
             )
+            
+            
+class ProfileFollowingsListAPIView(APIView):
+    """Returns a list of profiles followed by the specified profile ID."""
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, profile_id, format=None):
+        try:
+            profile = get_object_or_404(Profile, id=profile_id)
+            following_users = profile.user.followings.values_list("id", flat=True)
+            following_profiles = Profile.objects.filter(user__in=following_users)
+            following_serializer = ProfileSerializer(following_profiles, many=True)
+            
+            return Response({"Following": following_serializer.data}, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            return Response({"error": f"Profile nor found or an error occurred: {str(e)}"}, status=status.HTTP_404_NOT_FOUND)
             
 
 class ProfileDetailView(APIView):

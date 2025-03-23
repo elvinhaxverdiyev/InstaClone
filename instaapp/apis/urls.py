@@ -98,10 +98,16 @@ urlpatterns = [
         ),
     
     path(
-        'profiles/<int:profile_id>/follow_list/',
-        ProfileFollowListAPIView.as_view(),
-        name="profile-follow-list"
+        'profiles/<int:profile_id>/followers/',
+        ProfileFollowersListAPIView.as_view(),
+        name="profile-follower-list"
         ),
+    
+    path(
+        'profiles/<int:profile_id>/followings/',
+        ProfileFollowingsListAPIView.as_view(),
+        name="profile-followings-list"
+    ),
     
 ]
 
