@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from .posts_controls import Pagination
 from profiles.models import Profile
 from profiles.serializers import ProfileSerializer, UserSerializer
+from .permissions_cotrols import CanManageObjectPermission
 
 
 class ProfileListAPIView(APIView):
@@ -143,47 +144,33 @@ class UnfollowAPIView(APIView):
     
 class ProfileFollowersListAPIView(APIView):
     """Returns a list of profiles following the specified profile ID."""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [CanManageObjectPermission]
 
     def get(self, request, profile_id, format=None):
-        try:
-            profile = get_object_or_404(Profile, id=profile_id)
-            follower_users = profile.followers.all()
-            follower_profiles = Profile.objects.filter(user__in=follower_users)
-            follower_serializer = ProfileSerializer(follower_profiles, many=True)
-            return Response({"Followers": follower_serializer.data}, status=status.HTTP_200_OK)
-        
-        except Exception as e:
-            return Response(
-                {"error": f"Profile not found or an error occurred: {str(e)}"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        profile = get_object_or_404(Profile, id=profile_id)
+        follower_users = profile.followers.all()
+        follower_profiles = Profile.objects.filter(user__in=follower_users)
+        follower_serializer = ProfileSerializer(follower_profiles, many=True)
+        return Response({"Followers": follower_serializer.data}, status=status.HTTP_200_OK)
             
             
 class ProfileFollowingsListAPIView(APIView):
     """Returns a list of profiles followed by the specified profile ID."""
-    permission_classes = [IsAuthenticated]
-    
+    permission_classes = [CanManageObjectPermission]
+
     def get(self, request, profile_id, format=None):
-        try:
-            profile = get_object_or_404(Profile, id=profile_id)
-            following_users = profile.user.followings.values_list("id", flat=True)
-            following_profiles = Profile.objects.filter(user__in=following_users)
-            following_serializer = ProfileSerializer(following_profiles, many=True)
-            
-            return Response({"Following": following_serializer.data}, status=status.HTTP_200_OK)
-        
-        except Exception as e:
-            return Response({"error": f"Profile nor found or an error occurred: {str(e)}"}, status=status.HTTP_404_NOT_FOUND)
+        profile = get_object_or_404(Profile, id=profile_id)
+        following_users = profile.user.followings.values_list("id", flat=True)
+        following_profiles = Profile.objects.filter(user__in=following_users)
+        following_serializer = ProfileSerializer(following_profiles, many=True)
+        return Response({"Following": following_serializer.data}, status=status.HTTP_200_OK)
             
 
 class ProfileDetailView(APIView):
-    """
-    API for retrieving user profile details.
-    """
-    permission_classes = [IsAuthenticated]
+    """API for retrieving user profile details."""
+    permission_classes = [CanManageObjectPermission]
 
     def get(self, request, user_id):
-        profile = get_object_or_404(Profile, user__id=user_id)  
+        profile = get_object_or_404(Profile, user__id=user_id)
         serializer = ProfileSerializer(profile)
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -11,11 +11,12 @@ from likes.models import Like
 from likes.serializers import LikeSerializer
 from comments.models import Comment
 from comments.serializers import CommentSerializer, CommentCreateSerializer
+from .permissions_cotrols import CanManageObjectPermission
 
 
 class PostDetailAPIView(APIView):
     """API View to get, update, and delete a specific post."""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [CanManageObjectPermission]
     
     def get(self, request, id):
         """Handles GET request to fetch details of a specific post."""
@@ -46,19 +47,17 @@ class PostDetailAPIView(APIView):
 
 
 class PostListCreateAPIView(APIView):
-    """API View to list all posts and create new posts."""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [CanManageObjectPermission]
     pagination_class = Pagination 
 
     def get(self, request):
-        """Handles GET request to list all posts with pagination."""
-        posts = Post.objects.all()
-        paginator = self.pagination_class() 
-        result_page = paginator.paginate_queryset(posts, request)  
-        
+        following_profiles = request.user.profile.followings.all()
+        posts = Post.objects.filter(profile__in=following_profiles)
+        paginator = self.pagination_class()
+        result_page = paginator.paginate_queryset(posts, request)
         serializer = PostSerializer(result_page, many=True)
-        return paginator.get_paginated_response(serializer.data) 
-    
+        return paginator.get_paginated_response(serializer.data)
+        
     def post(self, request, *args, **kwargs):
         """Handles POST request to create a new post."""
         serializer = PostCreateSerializer(data=request.data, context={"request": request})
@@ -75,7 +74,7 @@ class PostListCreateAPIView(APIView):
 
 class LikePostAPIView(APIView):
     """API View to manage likes on posts. Allows to get, create and delete likes."""
-    permission_classes = [IsAuthenticated]  
+    permission_classes = [IsAuthenticated] 
     
     def get(self, request, post_id):
         """Handles GET request to fetch all likes for a specific post."""
@@ -134,7 +133,7 @@ class CommentManagmentAPIView(APIView):
     """
     API view for creating and retrieving comments for a specific post.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [CanManageObjectPermission]
 
     def get(self, request, post_id):
         """ Retrieve all comments for a specific post """
@@ -199,6 +198,4 @@ class LikeCommentAPIView(APIView):
             return Response({"message": "You have not liked this comment"}, status=status.HTTP_400_BAD_REQUEST)
 
         like.delete()
-        return Response({
-            "message": "Like removed"
-        }, status=status.HTTP_200_OK)
+        return Response({"message": "Like removed"}, status=status.HTTP_200_OK)

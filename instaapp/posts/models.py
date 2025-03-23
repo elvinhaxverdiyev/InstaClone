@@ -5,6 +5,7 @@ from datetime import timedelta
 from profiles.models import Profile
 from likes.models import Like
 
+
 class Post(models.Model):
     profile = models.ForeignKey(Profile, related_name="posts", on_delete=models.CASCADE)
     title = models.CharField(max_length=255, default='Untitled Post')    
@@ -23,7 +24,6 @@ class Post(models.Model):
 
     def has_image(self):
         return bool(self.image)
-    
     
     
 class Story(models.Model):

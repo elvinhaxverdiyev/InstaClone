@@ -77,7 +77,7 @@ urlpatterns = [
     path(
         'stories/', 
          StoryManagmentAPIView.as_view(),
-         name="story-api"
+         name="story-list-create"
          ),
     path(
         'profiles/<int:user_id>/follow/', 
