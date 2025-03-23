@@ -142,6 +142,7 @@ class UnfollowAPIView(APIView):
     
     
 class ProfileFollowListAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     """
     API endpoint to retrieve lists of followers and following profiles using the Profile model by ID
     """
