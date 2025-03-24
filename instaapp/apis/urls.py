@@ -87,6 +87,12 @@ urlpatterns = [
          ),
     
     path(
+        'stories/<int:story_id>/like/',
+        StoryLikeAPIView.as_view(),
+        name="story-like"
+        ),
+    
+    path(
         'profiles/<str:user_name>/follow/', 
         FollowAPIView.as_view(),
         name="follow-user"

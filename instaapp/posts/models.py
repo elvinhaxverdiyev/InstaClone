@@ -32,7 +32,6 @@ class Story(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     image = models.ImageField(upload_to="media/", null=True, blank=True)
     video = models.FileField(upload_to="media/", null=True, blank=True)
-    like_count = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f"{self.user.user.username}: {self.caption[:20]}"  

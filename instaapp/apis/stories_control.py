@@ -7,18 +7,19 @@ from django.shortcuts import get_object_or_404
 from .permissions_cotrols import CanManageObjectPermission
 from posts.models import Story
 from posts.serializers import StoryCreateSerializer, StorySerializer
+from likes.models import Like
 
 
 class StoryManagmentAPIView(APIView):
-    """API view for retrieving and creating stories."""
+    """API view for retrieving a single story."""
     permission_classes = [CanManageObjectPermission]
 
-    def get(self, request):
-        """Retrieve all stories ordered by creation date (newest first)."""
-        stories = Story.objects.all().order_by("-created_at")  
-        serializer = StorySerializer(stories, many=True)
+    def get(self, request, story_id):
+        """Handle GET request to retrieve a story by ID."""
+        story = get_object_or_404(Story, id=story_id)
+        serializer = StorySerializer(story, context={"request": request})  
         return Response(serializer.data, status=status.HTTP_200_OK)
-
+  
     def post(self, request):
         """Create a new story for the authenticated user."""
         serializer = StoryCreateSerializer(data=request.data, context={"request": request})
@@ -48,3 +49,43 @@ class StoryManagmentAPIView(APIView):
             {"message": "The story deleted successfuly"},
             status=status.HTTP_204_NO_CONTENT
         )
+        
+        
+class StoryLikeAPIView(APIView):
+    """API view to handle liking and unliking stories."""
+    permission_classes = [CanManageObjectPermission] 
+
+    def post(self, request, story_id):
+        """Handle POST request to like a specific story."""
+        
+        story = get_object_or_404(Story, id=story_id)
+        profile = request.user.profile
+        if Like.objects.filter(story=story, profile=profile).exists():
+            return Response({"message": "You have already liked this story!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        Like.objects.create(profile=profile, story=story)
+        likes_count = Like.objects.filter(story=story).count()
+        serializer = StorySerializer(story, context={"request": request})
+        return Response({
+            "message": "Story liked successfully!",
+            "story": serializer.data,
+            "likes_count": likes_count
+        }, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, story_id):
+        """Handle DELETE request to unlike a specific story."""
+        story = get_object_or_404(Story, id=story_id)
+        profile = request.user.profile
+        like = Like.objects.filter(story=story, profile=profile).first()
+        if like:
+            like.delete()
+            likes_count = Like.objects.filter(story=story).count()
+            serializer = StorySerializer(story, context={"request": request})
+
+            return Response({
+                "message": "Story unliked successfully!",
+                "story": serializer.data,
+                "likes_count": likes_count
+            }, status=status.HTTP_200_OK)
+
+        return Response({"message": "You haven't liked this story!"}, status=status.HTTP_400_BAD_REQUEST)
