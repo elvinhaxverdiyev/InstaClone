@@ -50,7 +50,7 @@ class RegisterAPIView(APIView):
 
         if serializer.is_valid():
             profile = serializer.save()
-            refresh = RefreshToken.for_user(profile)
+            refresh = RefreshToken.for_user(profile.user)
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
 
@@ -114,9 +114,9 @@ class FollowAPIView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, user_id):
+    def post(self, request, user_name):
         user = request.user 
-        profile_to_follow = get_object_or_404(Profile, id=user_id)
+        profile_to_follow = get_object_or_404(Profile, user__username=user_name)
 
         if profile_to_follow.user == user:
             return Response({"detail": "You cannot follow yourself."}, status=status.HTTP_400_BAD_REQUEST)
@@ -131,9 +131,9 @@ class UnfollowAPIView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, user_id):
+    def post(self, request, user_name):
         user = request.user
-        profile_to_unfollow = get_object_or_404(Profile, id=user_id)
+        profile_to_unfollow = get_object_or_404(Profile, user__username=user_name)
 
         if profile_to_unfollow.user == user:
             return Response({"detail": "You cannot unfollow yourself."}, status=status.HTTP_400_BAD_REQUEST)
@@ -146,8 +146,8 @@ class ProfileFollowersListAPIView(APIView):
     """Returns a list of profiles following the specified profile ID."""
     permission_classes = [CanManageObjectPermission]
 
-    def get(self, request, profile_id, format=None):
-        profile = get_object_or_404(Profile, id=profile_id)
+    def get(self, request, user_name, format=None):
+        profile = get_object_or_404(Profile, user__username=user_name)
         follower_users = profile.followers.all()
         follower_profiles = Profile.objects.filter(user__in=follower_users)
         follower_serializer = ProfileSerializer(follower_profiles, many=True)
@@ -155,22 +155,35 @@ class ProfileFollowersListAPIView(APIView):
             
             
 class ProfileFollowingsListAPIView(APIView):
-    """Returns a list of profiles followed by the specified profile ID."""
+    """Returns a list of profiles followed by the specified profile."""
     permission_classes = [CanManageObjectPermission]
 
-    def get(self, request, profile_id, format=None):
-        profile = get_object_or_404(Profile, id=profile_id)
-        following_users = profile.user.followings.values_list("id", flat=True)
-        following_profiles = Profile.objects.filter(user__in=following_users)
-        following_serializer = ProfileSerializer(following_profiles, many=True)
+    def get(self, request, user_name, format=None):
+        profile = get_object_or_404(Profile, user__username=user_name)
+        following_profiles = profile.user.followings.all()
+        following_serializer = ProfileSerializer(following_profiles, many=True, context={"request": request})
         return Response({"Following": following_serializer.data}, status=status.HTTP_200_OK)
-            
+    
 
 class ProfileDetailView(APIView):
     """API for retrieving user profile details."""
     permission_classes = [CanManageObjectPermission]
 
-    def get(self, request, user_id):
-        profile = get_object_or_404(Profile, user__id=user_id)
+    def get(self, request, user_name):
+        profile = get_object_or_404(Profile, user__username=user_name)
         serializer = ProfileSerializer(profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def patch(self, request, user_name):
+        """Partially update user profile details."""
+        profile = get_object_or_404(Profile, user__username=user_name)
+        print(f"Request User: {request.user}, Profile Owner: {profile.user}")
+        if request.user != profile.user:
+            return Response({"detail": "You do not have permission to edit this profile."}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = ProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

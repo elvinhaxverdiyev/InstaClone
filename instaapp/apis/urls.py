@@ -79,32 +79,39 @@ urlpatterns = [
          StoryManagmentAPIView.as_view(),
          name="story-list-create"
          ),
+    
     path(
-        'profiles/<int:user_id>/follow/', 
+        'stories/<int:story_id>/',
+         StoryManagmentAPIView.as_view(), 
+         name="story-detail"
+         ),
+    
+    path(
+        'profiles/<str:user_name>/follow/', 
         FollowAPIView.as_view(),
         name="follow-user"
         ),
     
     path(
-        'profiles/<int:user_id>/unfollow/',
+        'profiles/<str:user_name>/unfollow/',
         UnfollowAPIView.as_view(),
         name="unfollow-user"
         ),
     
     path(
-        'profiles/<int:user_id>/',
+        'profiles/<str:user_name>/',
         ProfileDetailView.as_view(),
         name="profile-detail"
         ),
     
     path(
-        'profiles/<int:profile_id>/followers/',
+        'profiles/<str:user_name>/followers/',
         ProfileFollowersListAPIView.as_view(),
         name="profile-follower-list"
         ),
     
     path(
-        'profiles/<int:profile_id>/followings/',
+        'profiles/<str:user_name>/followings/',
         ProfileFollowingsListAPIView.as_view(),
         name="profile-followings-list"
     ),

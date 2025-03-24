@@ -51,7 +51,7 @@ class PostListCreateAPIView(APIView):
     pagination_class = Pagination 
 
     def get(self, request):
-        following_profiles = request.user.profile.followings.all()
+        following_profiles = request.user.followings.all()
         posts = Post.objects.filter(profile__in=following_profiles)
         paginator = self.pagination_class()
         result_page = paginator.paginate_queryset(posts, request)
@@ -82,9 +82,10 @@ class LikePostAPIView(APIView):
         likes = Like.objects.filter(post=post)
         likes_count = likes.count() 
         serializer = LikeSerializer(likes, many=True)
-
-        response_data = serializer.data
-        response_data.append({"likes_count": likes_count})
+        response_data = {
+            "likes": serializer.data, 
+            "likes_count": likes_count
+            }
 
         return Response(response_data, status=status.HTTP_200_OK)
 
@@ -97,8 +98,10 @@ class LikePostAPIView(APIView):
         like = Like.objects.create(profile=request.user.profile, post=post)
         serializer = LikeSerializer(like)
         likes_count = post.likes.count()  
-        response_data = serializer.data
-        response_data.append({"likes_count": likes_count})
+        response_data = {
+            "like": serializer.data,  
+            "likes_count": likes_count  
+        }
 
         return Response(response_data, status=status.HTTP_201_CREATED)
 
