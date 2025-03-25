@@ -27,7 +27,7 @@ class Post(models.Model):
     def has_image(self):
         return bool(self.image)
     
-    
+
 class Story(models.Model):
     user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="stories")
     caption = models.CharField(max_length=2200, null=True, blank=True)
@@ -38,11 +38,19 @@ class Story(models.Model):
     def __str__(self):
         return f"{self.user.user.username}: {self.caption[:20]}"  
 
+    def save(self, *args, **kwargs):
+        is_new = self.id is None
+        super().save(*args, **kwargs) 
+        if is_new: 
+            self.delete_after_24_hours()
+
     def delete_after_24_hours(self):
-        expiration_time = self.created_at + timedelta(hours=24)
-        if now() > expiration_time:
-            self.delete()
-            
+        from posts.tasks import delete_story_after_24_hours
+        delete_story_after_24_hours.apply_async(
+            args=[self.id],
+            eta=self.created_at + timedelta(hours=24) 
+        )
+
     @classmethod
     def visible_stories(cls):
         return cls.objects.filter(created_at__gte=now() - timedelta(hours=24))

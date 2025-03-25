@@ -9,6 +9,8 @@ djangorestframework = "*"
 pillow = "*"
 drf-yasg = "*"
 djangorestframework-simplejwt = "*"
+celery = "*"
+redis = "*"
 
 [dev-packages]
 
