@@ -4,6 +4,7 @@ from datetime import timedelta
 
 from profiles.models import Profile
 from likes.models import Like
+from hashtags.models import HashTag
 
 
 class Post(models.Model):
@@ -12,6 +13,7 @@ class Post(models.Model):
     content = models.TextField(default='No content provided')  
     image = models.ImageField(upload_to="media/", null=True, blank=True)
     video = models.FileField(upload_to="media/", null=True, blank=True)
+    hashtags = models.ManyToManyField(HashTag, related_name="post_hashtag", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     likes = models.ManyToManyField(Profile, through=Like, related_name="liked_posts")

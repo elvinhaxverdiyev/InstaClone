@@ -27,19 +27,20 @@ class PostDetailAPIView(APIView):
     def patch(self, request, id):
         """Handles PATCH request to update a specific post partially."""
         post = get_object_or_404(Post, pk=id)
-        serializer = PostCreateSerializer(post, data=request.data, partial=True)
+        serializer = PostSerializer(post, data=request.data, partial=True)
 
         if serializer.is_valid():
             serializer.save()
             return Response({
-                'message': 'Post successfully updated!',
-                'post': serializer.data
+                "message": "Post successfully updated!",
+                "post": serializer.data
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, id):
         """Handles DELETE request to delete a specific post."""
         post = get_object_or_404(Post, pk=id)
+        self.check_object_permissions(request, post) 
         post.delete()
         return Response({
             'message': 'Post successfully deleted!'
@@ -48,11 +49,11 @@ class PostDetailAPIView(APIView):
 
 class PostListCreateAPIView(APIView):
     permission_classes = [CanManageObjectPermission]
-    pagination_class = Pagination 
+    pagination_class = Pagination
 
     def get(self, request):
         following_profiles = request.user.followings.all()
-        posts = Post.objects.filter(profile__in=following_profiles)
+        posts = Post.objects.filter(profile__in=following_profiles).order_by("-created_at")
         paginator = self.pagination_class()
         result_page = paginator.paginate_queryset(posts, request)
         serializer = PostSerializer(result_page, many=True)

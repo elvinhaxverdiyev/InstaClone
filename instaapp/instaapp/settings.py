@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'likes',
     'comments',
     'apis',
+    'hashtags',
     
 ]
 
