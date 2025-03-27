@@ -111,8 +111,5 @@ class Story(models.Model):
     def visible_stories(cls):
         """
         Returns all stories that have been created in the last 24 hours.
-
-        Returns:
-            QuerySet: A queryset of visible stories.
         """
         return cls.objects.filter(created_at__gte=now() - timedelta(hours=24))
