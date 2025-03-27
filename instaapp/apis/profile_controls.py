@@ -4,6 +4,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+from django.http import HttpRequest
 
 from .posts_controls import Pagination
 from profiles.models import Profile
@@ -16,7 +17,7 @@ class ProfileListAPIView(APIView):
     permission_classes = [IsAuthenticated]
     pagination_class = Pagination 
     
-    def get(self, request, *args, **kwargs):
+    def get(self, request: HttpRequest, *args, **kwargs) -> Response:
         """Handles GET request to list all profiles with pagination."""
         profiles = Profile.objects.all()  
         paginator = self.pagination_class() 
@@ -30,7 +31,7 @@ class ProfileSearchAPIView(APIView):
     """API View to search profiles by username."""
     permission_classes = [IsAuthenticated]
     
-    def get(self, request, *args, **kwargs):
+    def get(self, request: HttpRequest, *args, **kwargs) -> Response:
         """Handles GET request to search profiles by username."""
         query = request.query_params.get('q', None)
         if query:
@@ -44,7 +45,7 @@ class ProfileSearchAPIView(APIView):
 class RegisterAPIView(APIView):
     """API View to register a new profile."""
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args, **kwargs) -> Response:
         """Handles POST request to create a new profile."""
         serializer = ProfileSerializer(data=request.data)
 
@@ -66,7 +67,7 @@ class RegisterAPIView(APIView):
 class LoginAPIView(APIView):
     """API View to authenticate users and return JWT tokens."""
     
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args, **kwargs) -> Response:
         username = request.data.get("username")
         password = request.data.get("password")
 
@@ -95,7 +96,7 @@ class LoginAPIView(APIView):
 class LogoutAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    def post(self, request: HttpRequest) -> Response:
         """Handles POST request to logout the user by blacklisting the refresh token."""
         try:
             refresh_token = request.data.get("refresh_token")
@@ -114,7 +115,7 @@ class FollowAPIView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, user_name):
+    def post(self, request: HttpRequest, user_name: str) -> Response:
         user = request.user 
         profile_to_follow = get_object_or_404(Profile, user__username=user_name)
 
@@ -131,7 +132,7 @@ class UnfollowAPIView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, user_name):
+    def post(self, request: HttpRequest, user_name: str) -> Response:
         user = request.user
         profile_to_unfollow = get_object_or_404(Profile, user__username=user_name)
 
@@ -146,7 +147,7 @@ class ProfileFollowersListAPIView(APIView):
     """Returns a list of profiles following the specified profile ID."""
     permission_classes = [CanManageObjectPermission]
 
-    def get(self, request, user_name, format=None):
+    def get(self, request: HttpRequest, user_name: str, format=None) -> Response:
         profile = get_object_or_404(Profile, user__username=user_name)
         follower_users = profile.followers.all()
         follower_profiles = Profile.objects.filter(user__in=follower_users)
@@ -158,7 +159,7 @@ class ProfileFollowingsListAPIView(APIView):
     """Returns a list of profiles followed by the specified profile."""
     permission_classes = [CanManageObjectPermission]
 
-    def get(self, request, user_name, format=None):
+    def get(self, request: HttpRequest, user_name: str, format=None) -> Response:
         profile = get_object_or_404(Profile, user__username=user_name)
         following_profiles = profile.user.followings.all()
         following_serializer = ProfileSerializer(following_profiles, many=True, context={"request": request})
@@ -169,12 +170,12 @@ class ProfileDetailView(APIView):
     """API for retrieving user profile details."""
     permission_classes = [CanManageObjectPermission]
 
-    def get(self, request, user_name):
+    def get(self, request: HttpRequest, user_name: str) -> Response:
         profile = get_object_or_404(Profile, user__username=user_name)
         serializer = ProfileSerializer(profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def patch(self, request, user_name):
+    def patch(self, request: HttpRequest, user_name: str) -> Response:
         """Partially update user profile details."""
         profile = get_object_or_404(Profile, user__username=user_name)
         print(f"Request User: {request.user}, Profile Owner: {profile.user}")

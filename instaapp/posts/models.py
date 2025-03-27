@@ -37,10 +37,10 @@ class Post(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     likes = models.ManyToManyField(Profile, through=Like, related_name="liked_posts")
     
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title
 
-    def get_likes_count(self):
+    def get_likes_count(self) -> int:
         """
         Returns the total number of likes the post has received.
 
@@ -49,7 +49,7 @@ class Post(models.Model):
         """
         return self.likes.count()
 
-    def has_image(self):
+    def has_image(self) -> bool:
         """
         Checks if the post has an associated image.
 
@@ -81,7 +81,7 @@ class Story(models.Model):
     image = models.ImageField(upload_to="media/", null=True, blank=True)
     video = models.FileField(upload_to="media/", null=True, blank=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.user.user.username}: {self.caption[:20]}"  
 
     def save(self, *args, **kwargs):
@@ -108,7 +108,7 @@ class Story(models.Model):
         )
 
     @classmethod
-    def visible_stories(cls):
+    def visible_stories(cls) -> models.QuerySet:
         """
         Returns all stories that have been created in the last 24 hours.
         """

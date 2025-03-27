@@ -14,7 +14,7 @@ class HashTag(models.Model):
     name = models.CharField(max_length=50, unique=True)
     
     
-    def __str__(self):
+    def __str__(self) -> str:
         """Returns the string representation of the hashtag."""
         return self.name
 

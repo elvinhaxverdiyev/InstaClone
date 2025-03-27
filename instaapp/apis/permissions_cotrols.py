@@ -1,4 +1,6 @@
 from rest_framework.permissions import BasePermission
+from django.http import HttpRequest
+from rest_framework.views import APIView
 
 class CanManageObjectPermission(BasePermission):
     """
@@ -14,7 +16,7 @@ class CanManageObjectPermission(BasePermission):
     - If the object has no `profile` or `user` attribute, only staff members can access it.
     """
     
-    def has_permission(self, request, view):
+    def has_permission(self, request: HttpRequest, view: APIView) -> bool:
         """
         Checks general permission.
         - Grants access if the user is authenticated.
@@ -25,7 +27,7 @@ class CanManageObjectPermission(BasePermission):
         return True
     
 
-    def has_object_permission(self, request, view, obj):
+    def has_object_permission(self, request: HttpRequest, view: APIView, obj) -> bool:
         """
         Checks object-level permissions.
         

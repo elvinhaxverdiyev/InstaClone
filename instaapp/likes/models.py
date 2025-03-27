@@ -1,5 +1,7 @@
 from django.apps import apps
 from django.db import models
+from typing import Type
+
 from profiles.models import Profile
 
 
@@ -26,7 +28,7 @@ class Like(models.Model):
     story = models.ForeignKey("posts.Story", on_delete=models.CASCADE, related_name="story_likes", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns a string representation of the like, indicating whether it's for a comment, post, or story.
         
@@ -45,7 +47,7 @@ class Like(models.Model):
         return f"{self.profile.user.username} liked something"
     
     @classmethod
-    def get_post_model(cls):
+    def get_post_model(cls) -> Type[models.Model]:
         """
         Returns the Post model for the Like instance.
         
@@ -55,7 +57,7 @@ class Like(models.Model):
         return apps.get_model("posts", "Post")
 
     @classmethod
-    def get_comment_model(cls):
+    def get_comment_model(cls) -> Type[models.Model]:
         """
         Returns the Comment model for the Like instance.
         
@@ -65,7 +67,7 @@ class Like(models.Model):
         return apps.get_model("comments", "Comment")
     
     @classmethod
-    def get_story_model(cls):
+    def get_story_model(cls) -> Type[models.Model]:
         """
         Returns the Story model for the Like instance.
         

@@ -51,7 +51,7 @@ class PostSerializer(serializers.ModelSerializer):
             "likes_count"
             ]
         
-    def get_likes_count(self, obj):
+    def get_likes_count(self, obj) -> int:
         """
         Returns the count of likes associated with the post.
 
@@ -63,7 +63,7 @@ class PostSerializer(serializers.ModelSerializer):
         """
         return obj.get_likes_count()
     
-    def get_hashtag_list(self, obj):
+    def get_hashtag_list(self, obj) -> list:
         """
         Returns a list of hashtags associated with the post.
 
@@ -143,7 +143,7 @@ class StorySerializer(serializers.ModelSerializer):
         model = Story
         fields = "__all__"
         
-    def get_likes_count(self, obj):
+    def get_likes_count(self, obj) -> int:
         """
         Returns the count of likes for the story.
 
@@ -155,7 +155,7 @@ class StorySerializer(serializers.ModelSerializer):
         """
         return Like.objects.filter(story=obj).count()
     
-    def get_is_liked(self, obj):
+    def get_is_liked(self, obj) -> bool:
         """
         Checks if the current user has liked the story.
 

@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import get_object_or_404
+from django.http import HttpRequest
 
 from .paginations import Pagination
 from posts.models import Post
@@ -18,13 +19,13 @@ class PostDetailAPIView(APIView):
     """API View to get, update, and delete a specific post."""
     permission_classes = [CanManageObjectPermission]
     
-    def get(self, request, id):
+    def get(self, request: HttpRequest, id: int) -> Response:
         """Handles GET request to fetch details of a specific post."""
         post = get_object_or_404(Post, pk=id)
         serializer = PostSerializer(post)
         return Response(serializer.data)
 
-    def patch(self, request, id):
+    def patch(self, request: HttpRequest, id: int) -> Response:
         """Handles PATCH request to update a specific post partially."""
         post = get_object_or_404(Post, pk=id)
         serializer = PostSerializer(post, data=request.data, partial=True)
@@ -37,7 +38,7 @@ class PostDetailAPIView(APIView):
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, id):
+    def delete(self, request: HttpRequest, id: int) -> Response:
         """Handles DELETE request to delete a specific post."""
         post = get_object_or_404(Post, pk=id)
         self.check_object_permissions(request, post) 
@@ -60,7 +61,7 @@ class PostListCreateAPIView(APIView):
     permission_classes = [CanManageObjectPermission]
     pagination_class = Pagination
 
-    def get(self, request):
+    def get(self, request: HttpRequest) -> Response:
         """
         Handles GET requests to retrieve posts from followed users.
         
@@ -79,7 +80,7 @@ class PostListCreateAPIView(APIView):
         serializer = PostSerializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data)
         
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args, **kwargs) -> Response:
         """
         Handles POST requests to create a new post.
 
@@ -108,7 +109,7 @@ class LikePostAPIView(APIView):
     """API View to manage likes on posts. Allows to get, create and delete likes."""
     permission_classes = [IsAuthenticated] 
     
-    def get(self, request, post_id):
+    def get(self, request: HttpRequest, post_id: int) -> Response:
         """Handles GET request to fetch all likes for a specific post."""
         post = get_object_or_404(Post, id=post_id)
         likes = Like.objects.filter(post=post)
@@ -121,7 +122,7 @@ class LikePostAPIView(APIView):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
-    def post(self, request, post_id):
+    def post(self, request: HttpRequest, post_id: int) -> Response:
         """Handles POST request to create a like for a specific post."""
         post = get_object_or_404(Post, id=post_id)
         if Like.objects.filter(post=post, profile=request.user.profile).exists():
@@ -137,7 +138,7 @@ class LikePostAPIView(APIView):
 
         return Response(response_data, status=status.HTTP_201_CREATED)
 
-    def delete(self, request, post_id):
+    def delete(self, request: HttpRequest, post_id: int) -> Response:
         """Handles DELETE request to remove a like from a specific post."""
         post = get_object_or_404(Post, id=post_id)
         like = Like.objects.filter(post=post, profile=request.user.profile).first()
@@ -157,7 +158,7 @@ class CommentListAPIView(APIView):
     """
     permission_classes = [IsAuthenticated]  
 
-    def get(self, request):
+    def get(self, request: HttpRequest) -> Response:
         """ Retrieve all comments for all posts """
         comments = Comment.objects.all().order_by("-created_at")  
         serializer = CommentSerializer(comments, many=True)
@@ -170,13 +171,13 @@ class CommentManagmentAPIView(APIView):
     """
     permission_classes = [CanManageObjectPermission]
 
-    def get(self, request, post_id):
+    def get(self, request: HttpRequest, post_id: int) -> Response:
         """ Retrieve all comments for a specific post """
         comments = Comment.objects.filter(post_id=post_id)
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request, post_id):
+    def post(self, request: HttpRequest, post_id: int) -> Response:
         """ Create a new comment for a specific post """
         if not request.user.is_authenticated:
             return Response({"error": "User must be authenticated to create a comment"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -193,7 +194,7 @@ class CommentManagmentAPIView(APIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def delete(self, request, comment_id):
+    def delete(self, request: HttpRequest, comment_id: int) -> Response:
         """ Delete a specific comment if the user is the author """
         try:
             comment = Comment.objects.get(id=comment_id)
@@ -212,7 +213,7 @@ class LikeCommentAPIView(APIView):
     
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, comment_id):
+    def post(self, request: HttpRequest, comment_id: int) -> Response:
         """Creates a like for a comment if not already liked."""
         comment = get_object_or_404(Comment, id=comment_id)
         if Like.objects.filter(profile=request.user.profile, comment=comment).exists():
@@ -223,7 +224,7 @@ class LikeCommentAPIView(APIView):
 
         return Response({"message": "Like added","comment": serializer.data}, status=status.HTTP_201_CREATED)
 
-    def delete(self, request, comment_id):
+    def delete(self, request: HttpRequest, comment_id: int) -> Response:
         """Removes a like from a comment if it exists."""
         comment = get_object_or_404(Comment, id=comment_id)
 

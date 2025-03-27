@@ -22,7 +22,7 @@ class Comment(models.Model):
     text = models.CharField(max_length=2200)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns a string representation of the comment.
 
@@ -31,14 +31,14 @@ class Comment(models.Model):
         return f"{self.user.user.username} {self.text[:20]}"
 
     @property
-    def like_count(self):
+    def like_count(self) -> int:
         """
         Returns the total number of likes on this comment.
         """
         return Like.objects.filter(comment=self).count()  
 
     @property
-    def liked_by_users(self):
+    def liked_by_users(self) -> list:
         """
         Returns a list of usernames who liked this comment.
         """

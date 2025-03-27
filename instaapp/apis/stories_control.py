@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+from django.http import HttpRequest
 
 from .permissions_cotrols import CanManageObjectPermission
 from posts.models import Story
@@ -14,13 +15,13 @@ class StoryManagmentAPIView(APIView):
     """API view for retrieving a single story."""
     permission_classes = [CanManageObjectPermission]
 
-    def get(self, request, story_id):
+    def get(self, request: HttpRequest, story_id: int) -> Response:
         """Handle GET request to retrieve a story by ID."""
         story = get_object_or_404(Story, id=story_id)
         serializer = StorySerializer(story, context={"request": request})  
         return Response(serializer.data, status=status.HTTP_200_OK)
   
-    def post(self, request):
+    def post(self, request: HttpRequest) -> Response:
         """Create a new story for the authenticated user."""
         serializer = StoryCreateSerializer(data=request.data, context={"request": request})
         if serializer.is_valid():
@@ -28,7 +29,7 @@ class StoryManagmentAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def patch(self, request, story_id):
+    def patch(self, request: HttpRequest, story_id: int) -> Response:
         """Handle PATCH request to partially update a specific story."""
         story = get_object_or_404(Story, id=story_id)
         serializer = StoryCreateSerializer(story, data=request.data, partial=True, context={"request": request})
@@ -41,7 +42,7 @@ class StoryManagmentAPIView(APIView):
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def delete(self, request, story_id):
+    def delete(self, request: HttpRequest, story_id: int) -> Response:
         """Delete a specific story."""
         story = get_object_or_404(Story, id=story_id)
         story.delete()
@@ -55,7 +56,7 @@ class StoryLikeAPIView(APIView):
     """API view to handle liking and unliking stories."""
     permission_classes = [CanManageObjectPermission] 
 
-    def post(self, request, story_id):
+    def post(self, request: HttpRequest, story_id: int) -> Response:
         """Handle POST request to like a specific story."""
         
         story = get_object_or_404(Story, id=story_id)
@@ -72,7 +73,7 @@ class StoryLikeAPIView(APIView):
             "likes_count": likes_count
         }, status=status.HTTP_201_CREATED)
 
-    def delete(self, request, story_id):
+    def delete(self, request: HttpRequest, story_id: int) -> Response:
         """Handle DELETE request to unlike a specific story."""
         story = get_object_or_404(Story, id=story_id)
         profile = request.user.profile

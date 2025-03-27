@@ -27,7 +27,7 @@ class Profile(models.Model):
     website_link = models.URLField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
-    def __str__(self):
+    def __str__(self) -> str:
         """
         String representation of the Profile model.
 

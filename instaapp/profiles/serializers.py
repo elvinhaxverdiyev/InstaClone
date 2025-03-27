@@ -80,7 +80,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "username", "email", "password", "first_name", "last_name"
         ]
 
-    def get_followers_count(self, obj):
+    def get_followers_count(self, obj) -> int:
         """
         Returns the number of followers of a profile.
 
@@ -92,7 +92,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         """
         return obj.followers.count()
 
-    def get_following_count(self, obj):
+    def get_following_count(self, obj) -> bool:
         """
         Returns the number of users the profile is following.
 
