@@ -48,10 +48,30 @@ class PostDetailAPIView(APIView):
 
 
 class PostListCreateAPIView(APIView):
+    """
+    API view for listing posts from followed profiles and creating new posts.
+
+    - **GET**: Returns paginated posts from profiles the authenticated user follows.
+    - **POST**: Allows the authenticated user to create a new post.
+    
+    **Permissions:**
+    - Only authenticated users can access this endpoint.
+    """
     permission_classes = [CanManageObjectPermission]
     pagination_class = Pagination
 
     def get(self, request):
+        """
+        Handles GET requests to retrieve posts from followed users.
+        
+        **Logic:**
+        1. Fetches all profiles that the authenticated user follows.
+        2. Retrieves posts created by these profiles, ordered by creation date (newest first).
+        3. Paginates the posts and returns a paginated response.
+
+        **Returns:**
+        - `200 OK`: Paginated list of posts.
+        """
         following_profiles = request.user.followings.all()
         posts = Post.objects.filter(profile__in=following_profiles).order_by("-created_at")
         paginator = self.pagination_class()
@@ -60,7 +80,18 @@ class PostListCreateAPIView(APIView):
         return paginator.get_paginated_response(serializer.data)
         
     def post(self, request, *args, **kwargs):
-        """Handles POST request to create a new post."""
+        """
+        Handles POST requests to create a new post.
+
+        **Logic:**
+        1. Validates the request data using `PostCreateSerializer`.
+        2. If valid, saves the new post.
+        3. Returns a success response with the created post details.
+
+        **Returns:**
+        - `201 Created`: Post successfully created.
+        - `400 Bad Request`: Validation errors.
+        """
         serializer = PostCreateSerializer(data=request.data, context={"request": request})
 
         if serializer.is_valid():
