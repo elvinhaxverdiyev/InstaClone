@@ -2,6 +2,7 @@ from django.urls import path
 from .posts_controls import *
 from .profile_controls import *
 from .stories_control import *
+from .hashtags_control import *
 
 urlpatterns = [
     path(
@@ -122,5 +123,9 @@ urlpatterns = [
         name="profile-followings-list"
     ),
     
+    path('hashtags/', 
+         HashTagListAPIView.as_view(), 
+         name="hashtags-list"
+         ),
 ]
 
