@@ -11,6 +11,8 @@ drf-yasg = "*"
 djangorestframework-simplejwt = "*"
 celery = "*"
 redis = "*"
+psycopg2 = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

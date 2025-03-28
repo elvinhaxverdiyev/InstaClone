@@ -1,1 +1,10 @@
 instaapp/media/
+.env
+# Digər gizli saxlanmalı fayllar
+db.sqlite3
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+insta_proj-Eaz-CK3c/  # Virtual mühit qovluğu
+.vscode/  # Visual Studio Code
