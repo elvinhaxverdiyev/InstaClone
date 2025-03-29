@@ -8,8 +8,9 @@ from django.http import HttpRequest
 
 from .posts_controls import Pagination
 from profiles.models import Profile
-from profiles.serializers import ProfileSerializer, UserSerializer
+from profiles.serializers import ProfileSerializer
 from .permissions_cotrols import CanManageObjectPermission
+from utils.send_mail import send_welcome_email
 
 
 class ProfileListAPIView(APIView):
@@ -51,6 +52,7 @@ class RegisterAPIView(APIView):
 
         if serializer.is_valid():
             profile = serializer.save()
+            send_welcome_email(profile.user)
             refresh = RefreshToken.for_user(profile.user)
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
