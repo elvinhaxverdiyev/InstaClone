@@ -127,5 +127,12 @@ urlpatterns = [
          HashTagListAPIView.as_view(), 
          name="hashtags-list"
          ),
+    
+        path(
+            'hashtags/<str:hashtaq_name>/',
+            HashtagsPostListAPIView.as_view(),
+            name="hashtags-posts"
+            ),
+
 ]
 
