@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+
 from profiles.models import Profile
 
 
@@ -164,7 +165,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             email=email,
             password=password,
             first_name=first_name,
-            last_name=last_name
+            last_name=last_name,
+            is_active=False
         )
 
         profile = Profile.objects.create(user=user, **validated_data)

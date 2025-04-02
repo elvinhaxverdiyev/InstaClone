@@ -10,7 +10,7 @@ from .posts_controls import Pagination
 from profiles.models import Profile
 from profiles.serializers import ProfileSerializer
 from .permissions_cotrols import CanManageObjectPermission
-from utils.send_mail import send_welcome_email
+from utils.send_mail import send_verification_email
 
 
 class ProfileListAPIView(APIView):
@@ -41,6 +41,25 @@ class ProfileSearchAPIView(APIView):
             profiles = Profile.objects.all()
         serializer = ProfileSerializer(profiles, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
+class VerifyEmailViewAPI(APIView):
+    
+    def post(self, request):
+        email = request.data.get("email")
+        code = request.data.get("code")
+        try:
+            profile = Profile.objects.get(user__email=email)
+            if profile.verification_code == code:
+                profile.email_verified = True
+                profile.verification_code = None
+                profile.user.is_active = True 
+                profile.user.save()
+                profile.save()
+                return Response({"message": "Email verified successfully! Registration completed."}, status=status.HTTP_200_OK)
+            return Response({"error": "Invalid verification code."}, status=status.HTTP_400_BAD_REQUEST)
+        except Profile.DoesNotExist:
+            return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
 
 
 class RegisterAPIView(APIView):
@@ -51,8 +70,8 @@ class RegisterAPIView(APIView):
         serializer = ProfileSerializer(data=request.data)
 
         if serializer.is_valid():
-            profile = serializer.save()
-            send_welcome_email(profile.user)
+            profile = serializer.save()  
+            send_verification_email(profile)  
             refresh = RefreshToken.for_user(profile.user)
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)

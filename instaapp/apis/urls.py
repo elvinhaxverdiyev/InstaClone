@@ -24,6 +24,12 @@ urlpatterns = [
         ),
     
     path(
+        'verify-email/', 
+        VerifyEmailViewAPI.as_view(), 
+        name="verify-email"
+        ),
+    
+    path(
         'login/',
         LoginAPIView.as_view(),
         name="login"

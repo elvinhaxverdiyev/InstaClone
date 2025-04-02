@@ -1,4 +1,6 @@
 from django.db import models
+import random
+
 from django.contrib.auth.models import User
 
 
@@ -24,6 +26,8 @@ class Profile(models.Model):
     followers = models.ManyToManyField(User, related_name="followings", symmetrical=False, blank=True)
     profile_picture = models.ImageField(upload_to="media/", null=True, blank=True)
     bio = models.CharField(max_length=150, null=True, blank=True)
+    email_verified = models.BooleanField(default=False)  
+    verification_code = models.CharField(max_length=6, blank=True, null=True)
     website_link = models.URLField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -35,5 +39,11 @@ class Profile(models.Model):
             str: The username of the associated User model.
         """
         return self.user.username
+    
+    def generate_verification_code(self):
+        code = "".join(random.choices("0123456789", k=6))  
+        Profile.objects.filter(id=self.id).update(verification_code=code)  
+        self.verification_code = code 
+        return code
 
 
