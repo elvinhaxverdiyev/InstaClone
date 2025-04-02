@@ -35,4 +35,4 @@ class LikeSerializer(serializers.ModelSerializer):
             "created_at"
         ]
         
-        read_only_fields = ["created_at"]  # The created_at field is read-only
+        read_only_fields = ["created_at"] 
