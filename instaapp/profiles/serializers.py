@@ -55,11 +55,11 @@ class ProfileSerializer(serializers.ModelSerializer):
         last_name (str): The last name of the associated User.
     """
     username = serializers.CharField(write_only=True, required=False)
-    email = serializers.EmailField(write_only=True, required=False)
+    email = serializers.EmailField(write_only=True, required=True)
     password = serializers.CharField(
         write_only=True,
         style={"input_type": "password"},
-        required=False,
+        required=True,
         allow_blank=False  
     )
     first_name = serializers.CharField(required=False, allow_blank=True)
