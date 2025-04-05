@@ -24,7 +24,7 @@ urlpatterns = [
         ),
     
     path(
-        'verify-email/', 
+        'verify_email/', 
         VerifyEmailViewAPI.as_view(), 
         name="verify-email"
         ),

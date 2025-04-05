@@ -20,7 +20,7 @@ class ProfileListAPIView(APIView):
     
     def get(self, request: HttpRequest, *args, **kwargs) -> Response:
         """Handles GET request to list all profiles with pagination."""
-        profiles = Profile.objects.all()  
+        profiles = Profile.objects.all().order_by("id") 
         paginator = self.pagination_class() 
         result_page = paginator.paginate_queryset(profiles, request)
         

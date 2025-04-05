@@ -1,10 +1,11 @@
 import json
 from django.test import TestCase
 from rest_framework import status
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APITestCase
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 
-
+from profiles.serializers import ProfileSerializer
 from profiles.models import Profile
 
 User = get_user_model()
@@ -159,3 +160,72 @@ class LogoutAPIViewTest(TestCase):
         response = self.client.post(self.logout_url, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         print("OK: Logout allowed after already logged out")
+        
+
+class ProfileListAPIViewTest(APITestCase):
+    def setUp(self):
+        # Test üçün mühit hazırlığı
+        self.client = APIClient()
+        
+        # Test istifadəçisi yaradın
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpass123'
+        )
+        
+        # Test profil yaradın
+        self.profile1 = Profile.objects.create(
+            user=self.user,
+            bio='Test bio 1'
+        )
+        self.profile2 = Profile.objects.create(
+            user=User.objects.create_user(username='user2', password='pass'),
+            bio='Test bio 2'
+        )
+        
+        # URL-i təyin edin (urls.py-dəki name-ə uyğun olmalı)
+        self.url = reverse('users-list')  # 'profile-list' sizin URL adınız ola bilər
+
+    def test_get_profile_list_authenticated(self):
+        """Autentifikasiya olunmuş istifadəçi ilə profil siyahısının alınmasını test edir."""
+        # İstifadəçini autentifikasiya et
+        self.client.force_authenticate(user=self.user)
+        
+        # GET sorğusu göndər
+        response = self.client.get(self.url)
+        
+        # Cavabı yoxla
+        profiles = Profile.objects.all()
+        serializer = ProfileSerializer(profiles, many=True)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, serializer.data)
+
+    def test_get_profile_list_unauthenticated(self):
+        """Autentifikasiya olunmamış istifadəçi ilə sorğunun rədd edilməsini test edir."""
+        # Autentifikasiya olmadan sorğu göndər
+        response = self.client.get(self.url)
+        
+        # 401 Unauthorized gözlənilir, çünki IsAuthenticated var
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_pagination(self):
+        """Pagination funksionallığını test edir."""
+        self.client.force_authenticate(user=self.user)
+        
+        # Pagination parametrləri ilə sorğu göndər
+        response = self.client.get(self.url, {'page': 1})
+        
+        # Cavabın 200 OK olduğunu yoxla
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Pagination nəticələrinin düzgün olduğunu yoxla
+        profiles = Profile.objects.all()
+        serializer = ProfileSerializer(profiles, many=True)
+        self.assertTrue(len(response.data) <= len(serializer.data))
+
+    def tearDown(self):
+        """Testdən sonra təmizləmə."""
+        self.client.force_authenticate(user=None)
+        User.objects.all().delete()
+        Profile.objects.all().delete()
