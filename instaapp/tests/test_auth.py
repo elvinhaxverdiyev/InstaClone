@@ -3,6 +3,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.tokens import RefreshToken 
 from django.urls import reverse
 
 from profiles.serializers import ProfileSerializer
@@ -204,3 +205,35 @@ class ProfileListAPIViewTest(APITestCase):
         self.client.force_authenticate(user=None)
         User.objects.all().delete()
         Profile.objects.all().delete()
+
+
+class ProfileSearchAPIViewTest(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user1 = User.objects.create_user(username="Elvin", password="testpassword")
+        self.user2 = User.objects.create_user(username="Cahid", password="testpassword2")
+        self.profile1 = Profile.objects.create(user=self.user1, bio="Elvin's bio")
+        self.profile2 = Profile.objects.create(user=self.user2, bio="Cahid's bio")
+        self.url = reverse("user-search")
+        self.refresh = RefreshToken.for_user(self.user1)
+        self.access_token = str(self.refresh.access_token)
+        
+    def test_search_profiles_authenticated(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access_token}")
+        response = self.client.get(self.url, {"q": "Elvin"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        profiles = Profile.objects.filter(user__username__icontains="Elvin")
+        serializer = ProfileSerializer(profiles, many=True)
+        self.assertEqual(response.data, serializer.data)
+        self.assertEqual(len(response.data), 1)
+        
+    def test_search_profiles_no_query(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access_token}")
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        profiles = Profile.objects.all()
+        serializer = ProfileSerializer(profiles, many=True)
+        self.assertEqual(response.data, serializer.data)
+        self.assertEqual(len(response.data), 2)
