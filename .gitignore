@@ -1,5 +1,6 @@
 instaapp/media/
-.env
+*.env
+*.env.docker
 # Digər gizli saxlanmalı fayllar
 db.sqlite3
 __pycache__/
@@ -8,3 +9,4 @@ __pycache__/
 *.pyd
 insta_proj-Eaz-CK3c/  # Virtual mühit qovluğu
 .vscode/  # Visual Studio Code
+celerybeat-schedule
