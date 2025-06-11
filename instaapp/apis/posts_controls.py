@@ -137,6 +137,19 @@ class LikePostAPIView(APIView):
     """API View to manage likes on posts. Allows to get, create and delete likes."""
     permission_classes = [IsAuthenticated] 
     
+    @swagger_auto_schema(
+        operation_description="Get all likes for a specific post",
+        responses={200: openapi.Response(
+            description="List of likes and like count",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'likes': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_OBJECT)),
+                    'likes_count': openapi.Schema(type=openapi.TYPE_INTEGER),
+                }
+            )
+        )}
+    )
     def get(self, request: HttpRequest, post_id: int) -> Response:
         """Handles GET request to fetch all likes for a specific post."""
         post = get_object_or_404(Post, id=post_id)
@@ -149,7 +162,15 @@ class LikePostAPIView(APIView):
             }
 
         return Response(response_data, status=status.HTTP_200_OK)
-
+    
+    
+    @swagger_auto_schema(
+        operation_description="Create a like for a specific post",
+        responses={
+            201: LikeSerializer(),
+            400: "Already liked"
+        }
+    )
     def post(self, request: HttpRequest, post_id: int) -> Response:
         """Handles POST request to create a like for a specific post."""
         post = get_object_or_404(Post, id=post_id)
@@ -166,6 +187,13 @@ class LikePostAPIView(APIView):
 
         return Response(response_data, status=status.HTTP_201_CREATED)
 
+    @swagger_auto_schema(
+        operation_description="Remove a like from a specific post",
+        responses={
+            204: "Like removed successfully",
+            400: "You have not liked this post"
+        }
+    )
     def delete(self, request: HttpRequest, post_id: int) -> Response:
         """Handles DELETE request to remove a like from a specific post."""
         post = get_object_or_404(Post, id=post_id)
