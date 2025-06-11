@@ -4,6 +4,8 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import get_object_or_404
 from django.http import HttpRequest
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from .paginations import Pagination
 from posts.models import Post
@@ -19,11 +21,22 @@ class PostDetailAPIView(APIView):
     """API View to get, update, and delete a specific post."""
     permission_classes = [CanManageObjectPermission]
     
+    @swagger_auto_schema(
+        operation_description="Get post details by ID",
+        responses={200: PostSerializer()}
+    )
+    
     def get(self, request: HttpRequest, id: int) -> Response:
         """Handles GET request to fetch details of a specific post."""
         post = get_object_or_404(Post, pk=id)
         serializer = PostSerializer(post)
         return Response(serializer.data)
+    
+    @swagger_auto_schema(
+        operation_description="Partially update a post",
+        request_body=PostSerializer,
+        responses={200: PostSerializer()}
+    )
 
     def patch(self, request: HttpRequest, id: int) -> Response:
         """Handles PATCH request to update a specific post partially."""
@@ -37,6 +50,11 @@ class PostDetailAPIView(APIView):
                 "post": serializer.data
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @swagger_auto_schema(
+        operation_description="Delete a post",
+        responses={204: 'No Content'}
+    )
 
     def delete(self, request: HttpRequest, id: int) -> Response:
         """Handles DELETE request to delete a specific post."""
@@ -60,6 +78,11 @@ class PostListCreateAPIView(APIView):
     """
     permission_classes = [CanManageObjectPermission]
     pagination_class = Pagination
+    
+    @swagger_auto_schema(
+        operation_description="List all likes for a post",
+        responses={200: openapi.Response('Likes list', LikeSerializer(many=True))}
+    )
 
     def get(self, request: HttpRequest) -> Response:
         """
@@ -79,6 +102,11 @@ class PostListCreateAPIView(APIView):
         result_page = paginator.paginate_queryset(posts, request)
         serializer = PostSerializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data)
+    
+    @swagger_auto_schema(
+        operation_description="Like a post",
+        responses={201: LikeSerializer()}
+    )
         
     def post(self, request: HttpRequest, *args, **kwargs) -> Response:
         """
