@@ -9,7 +9,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 schema_view = get_schema_view(
     openapi.Info(
         title="Comment API",
-        default_version='v1',
+        default_version='api/v1/',
         description="Bu API şərhləri idarə etmək üçündür",
         terms_of_service="https://www.example.com/terms/",
         contact=openapi.Contact(email="admin@example.com"),
