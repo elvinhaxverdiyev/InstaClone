@@ -5,6 +5,8 @@ from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.http import HttpRequest
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from .posts_controls import Pagination
 from profiles.models import Profile
@@ -65,6 +67,14 @@ class VerifyEmailViewAPI(APIView):
 class RegisterAPIView(APIView):
     """API View to register a new profile."""
 
+    @swagger_auto_schema(
+        request_body=ProfileSerializer,
+        responses={
+            201: ProfileSerializer,
+            400: 'Bad Request',
+        },
+        operation_description="Register a new user profile."
+    )
     def post(self, request: HttpRequest, *args, **kwargs) -> Response:
         """Handles POST request to create a new profile."""
         serializer = ProfileSerializer(data=request.data)
@@ -87,6 +97,7 @@ class RegisterAPIView(APIView):
 
 class LoginAPIView(APIView):
     """API View to authenticate users and return JWT tokens."""
+    
     
     def post(self, request: HttpRequest, *args, **kwargs) -> Response:
         username = request.data.get("username")
@@ -190,12 +201,26 @@ class ProfileFollowingsListAPIView(APIView):
 class ProfileDetailView(APIView):
     """API for retrieving user profile details."""
     permission_classes = [CanManageObjectPermission]
-
+    
+    @swagger_auto_schema(
+        responses={200: ProfileSerializer, 404: 'Not Found'},
+        operation_description="Get user profile details by username"
+    )
     def get(self, request: HttpRequest, user_name: str) -> Response:
         profile = get_object_or_404(Profile, user__username=user_name)
         serializer = ProfileSerializer(profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+    @swagger_auto_schema(
+        request_body=ProfileSerializer,
+        responses={
+            200: ProfileSerializer,
+            400: 'Bad Request',
+            403: 'Forbidden',
+            404: 'Not Found'
+        },
+        operation_description="Partially update user profile details"
+    )
     def patch(self, request: HttpRequest, user_name: str) -> Response:
         """Partially update user profile details."""
         profile = get_object_or_404(Profile, user__username=user_name)
