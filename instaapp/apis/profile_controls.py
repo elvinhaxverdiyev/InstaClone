@@ -20,6 +20,10 @@ class ProfileListAPIView(APIView):
     permission_classes = [IsAuthenticated]
     pagination_class = Pagination 
     
+    @swagger_auto_schema(
+        responses={200: ProfileSerializer(many=True)},
+        operation_description="List all profiles with pagination support"
+    )
     def get(self, request: HttpRequest, *args, **kwargs) -> Response:
         """Handles GET request to list all profiles with pagination."""
         profiles = Profile.objects.all().order_by("id") 
@@ -34,6 +38,15 @@ class ProfileSearchAPIView(APIView):
     """API View to search profiles by username."""
     permission_classes = [IsAuthenticated]
     
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'q', openapi.IN_QUERY, description="Search query for username", type=openapi.TYPE_STRING, required=False
+            )
+        ],
+        responses={200: ProfileSerializer(many=True)},
+        operation_description="Search profiles by username"
+    )
     def get(self, request: HttpRequest, *args, **kwargs) -> Response:
         """Handles GET request to search profiles by username."""
         query = request.query_params.get('q', None)
@@ -47,6 +60,22 @@ class ProfileSearchAPIView(APIView):
     
 class VerifyEmailViewAPI(APIView):
     
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['email', 'code'],
+            properties={
+                'email': openapi.Schema(type=openapi.TYPE_STRING, format='email'),
+                'code': openapi.Schema(type=openapi.TYPE_STRING),
+            },
+        ),
+        responses={
+            200: openapi.Response('Email verified successfully', openapi.Schema(type=openapi.TYPE_OBJECT, properties={'message': openapi.Schema(type=openapi.TYPE_STRING)})),
+            400: 'Invalid verification code',
+            404: 'Profile not found'
+        },
+        operation_description="Verify email using the verification code"
+    )
     def post(self, request):
         email = request.data.get("email")
         code = request.data.get("code")
@@ -98,7 +127,36 @@ class RegisterAPIView(APIView):
 class LoginAPIView(APIView):
     """API View to authenticate users and return JWT tokens."""
     
-    
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['username', 'password'],
+            properties={
+                'username': openapi.Schema(type=openapi.TYPE_STRING),
+                'password': openapi.Schema(type=openapi.TYPE_STRING, format='password'),
+            }
+        ),
+        responses={
+            200: openapi.Response('Successful login', openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'user': openapi.Schema(type=openapi.TYPE_OBJECT,
+                                           properties={
+                                               'id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                                               'username': openapi.Schema(type=openapi.TYPE_STRING),
+                                               'email': openapi.Schema(type=openapi.TYPE_STRING),
+                                               'first_name': openapi.Schema(type=openapi.TYPE_STRING),
+                                               'last_name': openapi.Schema(type=openapi.TYPE_STRING),
+                                           }),
+                    'access': openapi.Schema(type=openapi.TYPE_STRING),
+                    'refresh': openapi.Schema(type=openapi.TYPE_STRING),
+                }
+            )),
+            400: 'Username and password are required',
+            401: 'Invalid credentials',
+        },
+        operation_description="Authenticate user and return JWT tokens"
+    )
     def post(self, request: HttpRequest, *args, **kwargs) -> Response:
         username = request.data.get("username")
         password = request.data.get("password")
@@ -127,7 +185,21 @@ class LoginAPIView(APIView):
 
 class LogoutAPIView(APIView):
     permission_classes = [IsAuthenticated]
-
+    
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['refresh_token'],
+            properties={
+                'refresh_token': openapi.Schema(type=openapi.TYPE_STRING),
+            }
+        ),
+        responses={
+            200: openapi.Response('Logout successful', openapi.Schema(type=openapi.TYPE_OBJECT, properties={'message': openapi.Schema(type=openapi.TYPE_STRING)})),
+            400: 'Bad Request',
+        },
+        operation_description="Logout user by blacklisting refresh token"
+    )
     def post(self, request: HttpRequest) -> Response:
         """Handles POST request to logout the user by blacklisting the refresh token."""
         try:
@@ -147,6 +219,14 @@ class FollowAPIView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response('Follow success', openapi.Schema(type=openapi.TYPE_OBJECT, properties={'detail': openapi.Schema(type=openapi.TYPE_STRING)})),
+            400: 'Bad Request',
+            404: 'Not Found'
+        },
+        operation_description="Follow another user by username"
+    )
     def post(self, request: HttpRequest, user_name: str) -> Response:
         user = request.user 
         profile_to_follow = get_object_or_404(Profile, user__username=user_name)
@@ -164,6 +244,14 @@ class UnfollowAPIView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response('Unfollow success', openapi.Schema(type=openapi.TYPE_OBJECT, properties={'detail': openapi.Schema(type=openapi.TYPE_STRING)})),
+            400: 'Bad Request',
+            404: 'Not Found'
+        },
+        operation_description="Unfollow another user by username"
+    )
     def post(self, request: HttpRequest, user_name: str) -> Response:
         user = request.user
         profile_to_unfollow = get_object_or_404(Profile, user__username=user_name)
@@ -179,6 +267,13 @@ class ProfileFollowersListAPIView(APIView):
     """Returns a list of profiles following the specified profile ID."""
     permission_classes = [CanManageObjectPermission]
 
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response('List of followers', ProfileSerializer(many=True)),
+            404: 'Not Found'
+        },
+        operation_description="List profiles following the specified user"
+    )
     def get(self, request: HttpRequest, user_name: str, format=None) -> Response:
         profile = get_object_or_404(Profile, user__username=user_name)
         follower_users = profile.followers.all()
@@ -191,6 +286,13 @@ class ProfileFollowingsListAPIView(APIView):
     """Returns a list of profiles followed by the specified profile."""
     permission_classes = [CanManageObjectPermission]
 
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response('List of followings', ProfileSerializer(many=True)),
+            404: 'Not Found'
+        },
+        operation_description="List profiles followed by the specified user"
+    )
     def get(self, request: HttpRequest, user_name: str, format=None) -> Response:
         profile = get_object_or_404(Profile, user__username=user_name)
         following_profiles = profile.user.followings.all()
