@@ -213,6 +213,10 @@ class CommentListAPIView(APIView):
     API view to retrieve all comments across all posts.
     """
     permission_classes = [IsAuthenticated]  
+    @swagger_auto_schema(
+        operation_summary="Get all comments",
+        responses={200: CommentSerializer(many=True)},
+    )
 
     def get(self, request: HttpRequest) -> Response:
         """ Retrieve all comments for all posts """
@@ -226,13 +230,22 @@ class CommentManagmentAPIView(APIView):
     API view for creating and retrieving comments for a specific post.
     """
     permission_classes = [CanManageObjectPermission]
+    @swagger_auto_schema(
+        operation_summary="Get comments for a specific post",
+        responses={200: CommentSerializer(many=True)},
+    )
 
     def get(self, request: HttpRequest, post_id: int) -> Response:
         """ Retrieve all comments for a specific post """
         comments = Comment.objects.filter(post_id=post_id)
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
+    
+    @swagger_auto_schema(
+        operation_summary="Create a comment for a specific post",
+        request_body=CommentCreateSerializer,
+        responses={201: CommentSerializer}
+    )
     def post(self, request: HttpRequest, post_id: int) -> Response:
         """ Create a new comment for a specific post """
         if not request.user.is_authenticated:
@@ -250,6 +263,17 @@ class CommentManagmentAPIView(APIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+    @swagger_auto_schema(
+        operation_summary="Delete a comment by ID",
+        manual_parameters=[
+            openapi.Parameter('comment_id', openapi.IN_PATH, description="ID of the comment to delete", type=openapi.TYPE_INTEGER)
+        ],
+        responses={
+            204: openapi.Response(description="Comment deleted"),
+            403: "You are not authorized to delete this comment",
+            404: "Comment not found"
+        }
+    )
     def delete(self, request: HttpRequest, comment_id: int) -> Response:
         """ Delete a specific comment if the user is the author """
         try:
@@ -268,7 +292,17 @@ class LikeCommentAPIView(APIView):
     """API view for liking/unliking comments with authentication required."""
     
     permission_classes = [IsAuthenticated]
-
+    
+    @swagger_auto_schema(
+        operation_summary="Like a comment",
+        manual_parameters=[
+            openapi.Parameter('comment_id', openapi.IN_PATH, description="ID of the comment to like", type=openapi.TYPE_INTEGER)
+        ],
+        responses={
+            201: openapi.Response("Like added", CommentSerializer),
+            400: "Already liked"
+        }
+    )
     def post(self, request: HttpRequest, comment_id: int) -> Response:
         """Creates a like for a comment if not already liked."""
         comment = get_object_or_404(Comment, id=comment_id)
@@ -279,7 +313,17 @@ class LikeCommentAPIView(APIView):
         serializer = CommentSerializer(comment)
 
         return Response({"message": "Like added","comment": serializer.data}, status=status.HTTP_201_CREATED)
-
+    
+    @swagger_auto_schema(
+        operation_summary="Unlike a comment",
+        manual_parameters=[
+            openapi.Parameter('comment_id', openapi.IN_PATH, description="ID of the comment to unlike", type=openapi.TYPE_INTEGER)
+        ],
+        responses={
+            200: "Like removed",
+            400: "You have not liked this comment"
+        }
+    )
     def delete(self, request: HttpRequest, comment_id: int) -> Response:
         """Removes a like from a comment if it exists."""
         comment = get_object_or_404(Comment, id=comment_id)
