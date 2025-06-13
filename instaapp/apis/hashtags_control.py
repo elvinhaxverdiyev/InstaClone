@@ -12,7 +12,16 @@ from hashtags.serializers import HashTagSerializer
 
 
 class HashTagListAPIView(APIView):
-    """API view for listing the all hastags"""
+    """
+    API view for listing all hashtags.
+
+    Permissions:
+        - Custom permission: CanManageObjectPermission
+
+    Returns:
+        - 200 OK: List of all hashtags
+        - 404 Not Found: If no hashtags are found
+    """
     permission_classes = [CanManageObjectPermission]
     
     @swagger_auto_schema(
@@ -26,6 +35,19 @@ class HashTagListAPIView(APIView):
     
     
 class HashtagsPostListAPIView(APIView):
+    """
+    API view for retrieving posts associated with a specific hashtag.
+
+    Permissions:
+        - Custom permission: CanManageObjectPermission
+
+    Path Parameters:
+        - hashtag_name (str): The name of the hashtag
+
+    Returns:
+        - 200 OK: List of posts associated with the hashtag
+        - 404 Not Found: If the hashtag or posts are not found
+    """
     permission_classes = [CanManageObjectPermission]
     @swagger_auto_schema(
         operation_description="Retrieve all posts related to a hashtag",
