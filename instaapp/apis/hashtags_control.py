@@ -13,14 +13,7 @@ from hashtags.serializers import HashTagSerializer
 
 class HashTagListAPIView(APIView):
     """
-    API view for listing all hashtags.
-
-    Permissions:
-        - Custom permission: CanManageObjectPermission
-
-    Returns:
-        - 200 OK: List of all hashtags
-        - 404 Not Found: If no hashtags are found
+    API that returns a list of all hashtags.
     """
     permission_classes = [CanManageObjectPermission]
     
