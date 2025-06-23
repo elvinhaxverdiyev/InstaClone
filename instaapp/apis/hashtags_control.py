@@ -29,17 +29,7 @@ class HashTagListAPIView(APIView):
     
 class HashtagsPostListAPIView(APIView):
     """
-    API view for retrieving posts associated with a specific hashtag.
-
-    Permissions:
-        - Custom permission: CanManageObjectPermission
-
-    Path Parameters:
-        - hashtag_name (str): The name of the hashtag
-
-    Returns:
-        - 200 OK: List of posts associated with the hashtag
-        - 404 Not Found: If the hashtag or posts are not found
+    API that returns all posts related to a given hashtag.
     """
     permission_classes = [CanManageObjectPermission]
     @swagger_auto_schema(
