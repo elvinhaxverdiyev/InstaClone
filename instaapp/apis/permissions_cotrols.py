@@ -3,18 +3,8 @@ from django.http import HttpRequest
 from rest_framework.views import APIView
 
 class CanManageObjectPermission(BasePermission):
-    """
-    Custom permission class to manage access and modification permissions for objects.
-
-    - **GET, POST requests**:
-      - Access is granted if the user is the object owner or an admin.
-      - If the user is not the owner but follows the object owner, they can perform a GET request.
-
-    - **PUT, PATCH, DELETE requests**:
-      - Access is granted only if the user is the object owner or an admin.
-
-    - If the object has no `profile` or `user` attribute, only staff members can access it.
-    """
+    """Permission class that allows access if the user is the object owner,
+    a follower of the owner, or an admin, depending on the request method."""
     
     def has_permission(self, request: HttpRequest, view: APIView) -> bool:
         """
