@@ -18,14 +18,8 @@ class CanManageObjectPermission(BasePermission):
     
 
     def has_object_permission(self, request: HttpRequest, view: APIView, obj) -> bool:
-        """
-        Checks object-level permissions.
-        
-        - `profile.user == request.user` -> Grants access if the user owns the object.
-        - `request.user.is_staff` -> Grants access if the user is an admin.
-        - `profile.followers.filter(id=request.user.profile.id).exists()` -> Grants GET access if the user follows the owner.
-        """
-        
+        """Grants access if the user is the owner, an admin, or (for GET) a follower of the owner."""
+
         profile = getattr(obj, "profile", None) or getattr(obj, "user", None)
         if profile is None:
             return request.user.is_staff
