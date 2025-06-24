@@ -93,18 +93,8 @@ class PostListCreateAPIView(APIView):
     )
         
     def post(self, request: HttpRequest, *args, **kwargs) -> Response:
-        """
-        Handles POST requests to create a new post.
+        """Create a new post for the authenticated user."""
 
-        **Logic:**
-        1. Validates the request data using `PostCreateSerializer`.
-        2. If valid, saves the new post.
-        3. Returns a success response with the created post details.
-
-        **Returns:**
-        - `201 Created`: Post successfully created.
-        - `400 Bad Request`: Validation errors.
-        """
         serializer = PostCreateSerializer(data=request.data, context={"request": request})
 
         if serializer.is_valid():
