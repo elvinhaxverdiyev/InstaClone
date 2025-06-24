@@ -78,17 +78,8 @@ class PostListCreateAPIView(APIView):
     )
 
     def get(self, request: HttpRequest) -> Response:
-        """
-        Handles GET requests to retrieve posts from followed users.
-        
-        **Logic:**
-        1. Fetches all profiles that the authenticated user follows.
-        2. Retrieves posts created by these profiles, ordered by creation date (newest first).
-        3. Paginates the posts and returns a paginated response.
+        """Get paginated posts from followed profiles."""
 
-        **Returns:**
-        - `200 OK`: Paginated list of posts.
-        """
         following_profiles = request.user.followings.all()
         posts = Post.objects.filter(profile__in=following_profiles).order_by("-created_at")
         paginator = self.pagination_class()
