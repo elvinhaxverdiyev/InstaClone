@@ -18,7 +18,7 @@ from .permissions_cotrols import CanManageObjectPermission
 
 
 class PostDetailAPIView(APIView):
-    """API View to get, update, and delete a specific post."""
+    """Get, update, or delete a specific post."""
     permission_classes = [CanManageObjectPermission]
     
     @swagger_auto_schema(
