@@ -67,15 +67,8 @@ class PostDetailAPIView(APIView):
 
 
 class PostListCreateAPIView(APIView):
-    """
-    API view for listing posts from followed profiles and creating new posts.
+    """List posts from followed users or create a new post."""
 
-    - **GET**: Returns paginated posts from profiles the authenticated user follows.
-    - **POST**: Allows the authenticated user to create a new post.
-    
-    **Permissions:**
-    - Only authenticated users can access this endpoint.
-    """
     permission_classes = [CanManageObjectPermission]
     pagination_class = Pagination
     
