@@ -16,13 +16,7 @@ from utils.send_mail import send_verification_email
 
 
 class ProfileListAPIView(APIView):
-    """
-    Get a paginated list of all user profiles.
-
-    - Authenticated access required.
-    - Results are ordered by ID.
-    - Supports pagination via custom class.
-    """
+    """Paginated list of all user profiles."""
 
     permission_classes = [IsAuthenticated]
     pagination_class = Pagination 
