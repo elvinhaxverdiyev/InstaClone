@@ -14,8 +14,6 @@ class Comment(models.Model):
     def __str__(self) -> str:
         """
         Returns a string representation of the comment.
-
-        **Format:** `<username> <first 20 characters of comment>`
         """
         return f"{self.user.user.username} {self.text[:20]}"
 
